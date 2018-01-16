@@ -38,6 +38,25 @@ def sparse_sample_multinomial(x, from_logits=False):
     else:
         raise NotImplementedError
 
+
+def sample_binomial(x, from_logits=False):
+    if K.backend() == 'theano':
+        from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
+        random = RandomStreams()
+        s = random.uniform(x.shape, low=0, high=1)
+    elif K.backend() == 'tensorflow':
+        import tensorflow as tf
+        s = tf.random_uniform(tf.shape(x), minval=0, maxval=1)
+    else:
+        raise NotImplementedError
+
+    if from_logits:
+        # TODO: there might be more direct way from logits
+        return K.cast(K.sigmoid(x) > s, K.floatx())
+    else:
+        return K.cast(x > s, K.floatx())
+
+
 if __name__ == '__main__':
     import numpy as np
     x = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
